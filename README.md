@@ -112,3 +112,26 @@
    - إعطاء جميع حقول العنوان `.wc-block-components-address-form .wc-block-components-text-input` عرض `width: 100%; flex: 1 1 100%`.
    - تطبيق `-webkit-appearance: none;` ومنع التكبير التلقائي في آيفون (`font-size: 16px`).
 2. تم وضع كود الـ CSS في `sites/muskise.com/custom-css-fix.css` لإمكانية وضعه يدوياً عبر لوحة التحكم (مظهر -> تخصيص -> تنسيقات CSS إضافية) أو تفعيله عبر الإضافة.
+
+---
+
+## 💳 إضافة الدفع السريع والروابط المباشرة (Quick Pay & Pay Links)
+
+تم تطوير وتفعيل إضافة `plugins/wc-quick-pay/` لتوفير محطة دفع وسداد فواتير سريعة ومستقلة:
+
+### 1. المميزات:
+- صفحة دفع منعزلة وخالية من عناصر تشتيت القوالب (`/pay/`).
+- توليد فواتير وطلبات ووكومرس فورية برقم مرجعي ومبلغ حر أو مبالغ محددة مسبقاً (50, 100, 250, 500, 1000 ر.س).
+- دعم روابط الدفع المسبقة بالمعطيات (Query Parameters) لإرسالها للعملاء مباشرة عبر الواتساب:
+  ```text
+  https://muskise.com/pay/?amount=150&invoice=INV-102&name=اسم_العميل&phone=05xxxxxxxx
+  ```
+- تكامل تام مع بوابة **Paymob** في السعودية (`paymob-main`) وتمرير تلقائي لمعرّفات الربط (`36409` للبطاقات ومدى، `37681` لـ Apple Pay، `37682` لـ MIGS).
+- توثيق كامل للطلبات في لوحة تحكم ووردبريس مع شارة "دفع سريع" وبيانات الفاتورة.
+
+### 2. النشر على السيرفر عبر Git:
+- يتم عزل الإضافة وتحديثها على السيرفر مباشرة عبر فرع `plugin/wc-quick-pay`:
+  ```bash
+  git subtree split --prefix=plugins/wc-quick-pay -b plugin/wc-quick-pay-temp
+  git push origin plugin/wc-quick-pay-temp:plugin/wc-quick-pay --force
+  ```
