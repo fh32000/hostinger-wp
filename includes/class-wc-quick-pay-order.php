@@ -27,6 +27,9 @@ class WC_Quick_Pay_Order {
 
         // Ensure customer data sync with WC session.
         add_filter( 'woocommerce_checkout_get_value', [ __CLASS__, 'prefill_checkout_field' ], 10, 2 );
+
+        // Ensure Paymob integration IDs and billing defaults for Quick Pay orders.
+        add_filter( 'paymob_intention_data', [ __CLASS__, 'filter_paymob_intention_data' ], 10, 2 );
     }
 
     /**
@@ -129,6 +132,9 @@ class WC_Quick_Pay_Order {
         $order->set_billing_email( $email );
         $order->set_billing_phone( $phone );
         $order->set_billing_country( 'SA' ); // Default to SA for region
+        $order->set_billing_city( 'Riyadh' );
+        $order->set_billing_address_1( 'Online Payment' );
+        $order->set_billing_postcode( '11564' );
 
         // Add line item with custom dynamic price.
         $item = new WC_Order_Item_Product();
@@ -357,6 +363,92 @@ class WC_Quick_Pay_Order {
         }
 
         return $value;
+    }
+
+    /**
+     * Fix Paymob integration IDs and billing defaults for Quick Pay orders.
+     *
+     * @param array $data
+     * @param array $context
+     * @return array
+     */
+    public static function filter_paymob_intention_data( array $data, array $context = [] ): array {
+        $methods = $data['payment_methods'] ?? [];
+        $is_invalid = empty( $methods ) || [ 0 ] === $methods || in_array( 0, $methods, true );
+
+        if ( $is_invalid ) {
+            global $wpdb;
+            $valid_ids = [];
+
+            // 1. Check from wp_paymob_gateways
+            $table = $wpdb->prefix . 'paymob_gateways';
+            if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+                $rows = $wpdb->get_results( "SELECT integration_id FROM {$table} WHERE integration_id != '' AND integration_id != '0'" );
+                if ( ! empty( $rows ) ) {
+                    foreach ( $rows as $r ) {
+                        $ids = explode( ',', $r->integration_id );
+                        foreach ( $ids as $single_id ) {
+                            $id_int = (int) trim( $single_id );
+                            if ( $id_int > 0 && ! in_array( $id_int, $valid_ids, true ) ) {
+                                $valid_ids[] = $id_int;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Fallback to settings options
+            if ( empty( $valid_ids ) ) {
+                $settings = get_option( 'woocommerce_paymob_settings', [] );
+                if ( ! empty( $settings['integration_id'] ) && is_array( $settings['integration_id'] ) ) {
+                    foreach ( $settings['integration_id'] as $single_id ) {
+                        $id_int = (int) trim( $single_id );
+                        if ( $id_int > 0 && ! in_array( $id_int, $valid_ids, true ) ) {
+                            $valid_ids[] = $id_int;
+                        }
+                    }
+                }
+            }
+
+            // 3. Known Muskise Paymob Integrations (Card: 36409, Apple Pay: 37681, MIGS: 37682)
+            if ( empty( $valid_ids ) ) {
+                $valid_ids = [ 36409, 37681, 37682 ];
+            }
+
+            $data['payment_methods'] = $valid_ids;
+        }
+
+        // Ensure billing_data fields are non-empty for Paymob API
+        if ( isset( $data['billing_data'] ) && is_array( $data['billing_data'] ) ) {
+            if ( empty( $data['billing_data']['country'] ) || 'NA' === $data['billing_data']['country'] ) {
+                $data['billing_data']['country'] = 'SA';
+            }
+            if ( empty( $data['billing_data']['city'] ) || 'NA' === $data['billing_data']['city'] ) {
+                $data['billing_data']['city'] = 'Riyadh';
+            }
+            if ( empty( $data['billing_data']['street'] ) || 'NA' === $data['billing_data']['street'] ) {
+                $data['billing_data']['street'] = 'Online Payment';
+            }
+            if ( empty( $data['billing_data']['postal_code'] ) || 'NA' === $data['billing_data']['postal_code'] ) {
+                $data['billing_data']['postal_code'] = '11564';
+            }
+            if ( empty( $data['billing_data']['state'] ) || 'NA' === $data['billing_data']['state'] ) {
+                $data['billing_data']['state'] = 'Riyadh';
+            }
+            // Ensure phone number has clean digits and country code
+            if ( ! empty( $data['billing_data']['phone_number'] ) ) {
+                $raw_phone = (string) $data['billing_data']['phone_number'];
+                $clean_phone = preg_replace( '/[^0-9]/', '', $raw_phone );
+                if ( str_starts_with( $clean_phone, '05' ) ) {
+                    $clean_phone = '+966' . substr( $clean_phone, 1 );
+                } elseif ( str_starts_with( $clean_phone, '5' ) && strlen( $clean_phone ) === 9 ) {
+                    $clean_phone = '+966' . $clean_phone;
+                }
+                $data['billing_data']['phone_number'] = $clean_phone;
+            }
+        }
+
+        return $data;
     }
 }
 

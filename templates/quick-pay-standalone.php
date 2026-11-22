@@ -12,6 +12,15 @@ $settings        = get_option( 'wc_quick_pay_settings', [] );
 $site_title      = get_bloginfo( 'name' );
 $page_title      = ! empty( $settings['page_title'] ) ? $settings['page_title'] : __( 'سداد سريع وآمن', 'wc-quick-pay' );
 $logo_url        = $settings['logo_url'] ?? '';
+if ( empty( $logo_url ) ) {
+    $custom_logo_id = get_theme_mod( 'custom_logo' );
+    if ( $custom_logo_id ) {
+        $logo_url = wp_get_attachment_image_url( $custom_logo_id, 'full' );
+    }
+    if ( empty( $logo_url ) && file_exists( WP_CONTENT_DIR . '/uploads/2026/09/Gemini_Generated_Image_dg1l7pdg1l7pdg1l.png' ) ) {
+        $logo_url = content_url( '/uploads/2026/09/Gemini_Generated_Image_dg1l7pdg1l7pdg1l.png' );
+    }
+}
 $header_title    = ! empty( $settings['header_title'] ) ? $settings['header_title'] : __( 'صفحة الدفع السريع وسداد الفواتير', 'wc-quick-pay' );
 $header_subtitle = ! empty( $settings['header_subtitle'] ) ? $settings['header_subtitle'] : __( 'أدخل بياناتك ورقم الفاتورة لإتمام الدفع الآمن والمباشر', 'wc-quick-pay' );
 $header_badge    = ! empty( $settings['header_badge'] ) ? $settings['header_badge'] : __( '🔒 سداد آمن ومشفّر 256-bit', 'wc-quick-pay' );
@@ -22,8 +31,8 @@ $accent_color  = $settings['accent_color'] ?? '#D4AF37';
 $bg_color      = $settings['bg_color'] ?? '#f8fafc';
 
 // Support.
-$whatsapp = $settings['support_whatsapp'] ?? '';
-$phone    = $settings['support_phone'] ?? '';
+$whatsapp = ! empty( $settings['support_whatsapp'] ) ? $settings['support_whatsapp'] : '966579355216';
+$phone    = ! empty( $settings['support_phone'] ) ? $settings['support_phone'] : '+966579355216';
 $email    = $settings['support_email'] ?? '';
 $terms    = $settings['terms_url'] ?? '';
 $refund   = $settings['refund_url'] ?? '';

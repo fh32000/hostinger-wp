@@ -21,12 +21,30 @@ foreach ( $all_gateways as $id => $gw ) {
     if ( 'selected' === $mode && ! in_array( $id, $selected_list, true ) ) {
         continue;
     }
+    // Filter out internal pixel widget when hosted paymob-main is present
+    if ( 'paymob-pixel' === $id && isset( $all_gateways['paymob-main'] ) ) {
+        continue;
+    }
     $active_gateways[ $id ] = $gw;
 }
 
 // Fallback to all if selected is empty.
 if ( empty( $active_gateways ) ) {
-    $active_gateways = $all_gateways;
+    foreach ( $all_gateways as $id => $gw ) {
+        if ( 'paymob-pixel' === $id && isset( $all_gateways['paymob-main'] ) ) {
+            continue;
+        }
+        $active_gateways[ $id ] = $gw;
+    }
+}
+
+// Ensure default gateway is selected
+if ( empty( $default_gw ) || ! isset( $active_gateways[ $default_gw ] ) ) {
+    if ( isset( $active_gateways['paymob-main'] ) ) {
+        $default_gw = 'paymob-main';
+    } else {
+        $default_gw = array_key_first( $active_gateways ) ?: '';
+    }
 }
 
 // Preset amounts.
@@ -242,7 +260,17 @@ $init_amount = ! empty( $prefill['amount'] ) ? $prefill['amount'] : ( ! empty( $
                             $checked = true;
                         }
                         $is_first = false;
+
+                        $gw_title = $gateway->get_title();
+                        $gw_desc  = $gateway->get_description();
                         $icon     = $gateway->get_icon();
+
+                        // Custom friendly Arabic display for Paymob
+                        if ( str_starts_with( $gw_id, 'paymob' ) ) {
+                            $gw_title = __( 'باي موب - الدفع الإلكتروني (مدى / فيزا / ماستركارد / Apple Pay)', 'wc-quick-pay' );
+                            $gw_desc  = __( 'سداد فوري وآمن ببطاقات مدى، البطاقات الائتمانية، و Apple Pay عبر بوابة Paymob.', 'wc-quick-pay' );
+                            $icon     = '<img id="paymob-logo" src="' . esc_url( home_url( '/wp-content/plugins/paymob-for-woocommerce/assets/img/paymob.png' ) ) . '" alt="Paymob" style="max-height:28px;width:auto;" />';
+                        }
                     ?>
                         <label class="wc-qp-gateway-item <?php echo $checked ? 'is-selected' : ''; ?>" for="gw_<?php echo esc_attr( $gw_id ); ?>">
                             <div class="wc-qp-gateway-radio-wrap">
@@ -259,13 +287,13 @@ $init_amount = ! empty( $prefill['amount'] ) ? $prefill['amount'] : ( ! empty( $
 
                             <div class="wc-qp-gateway-info">
                                 <div class="wc-qp-gateway-title-row">
-                                    <strong class="wc-qp-gateway-title"><?php echo esc_html( $gateway->get_title() ); ?></strong>
-                                    <?php if ( 'wc_ahli_mpgs_gateway' === $gw_id ) : ?>
+                                    <strong class="wc-qp-gateway-title"><?php echo esc_html( $gw_title ); ?></strong>
+                                    <?php if ( 'wc_ahli_mpgs_gateway' === $gw_id || str_starts_with( $gw_id, 'paymob' ) ) : ?>
                                         <span class="wc-qp-badge-recommended"><?php esc_html_e( 'فوري وآمن', 'wc-quick-pay' ); ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <?php if ( ! empty( $gateway->get_description() ) ) : ?>
-                                    <p class="wc-qp-gateway-desc"><?php echo wp_kses_post( $gateway->get_description() ); ?></p>
+                                <?php if ( ! empty( $gw_desc ) ) : ?>
+                                    <p class="wc-qp-gateway-desc"><?php echo wp_kses_post( $gw_desc ); ?></p>
                                 <?php endif; ?>
                             </div>
 
