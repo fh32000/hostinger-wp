@@ -153,3 +153,4 @@ function muskise_enqueue_safari_fix() {
     wp_enqueue_style('muskise-safari-fix-inline');
     wp_add_inline_style('muskise-safari-fix-inline', $custom_css);
 }
+
