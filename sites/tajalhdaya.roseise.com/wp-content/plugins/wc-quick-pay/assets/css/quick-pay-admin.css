@@ -1,0 +1,84 @@
+/**
+ * Quick Pay Admin Styling
+ */
+
+.wc-quick-pay-admin-wrap {
+    margin: 20px 20px 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.wc-qp-header {
+    background: #ffffff;
+    border: 1px solid #c3c4c7;
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+}
+
+.wc-qp-header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.wc-qp-icon {
+    font-size: 32px;
+}
+
+.wc-qp-header-title h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.wc-qp-subtitle {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.wc-qp-btn-preview {
+    font-weight: 700 !important;
+    padding: 6px 16px !important;
+    height: auto !important;
+    font-size: 14px !important;
+}
+
+.wc-qp-nav-tabs {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #c3c4c7;
+    display: flex;
+    gap: 6px;
+}
+
+.wc-qp-nav-tabs .nav-tab {
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 16px;
+}
+
+.wc-qp-tab-content {
+    background: #ffffff;
+    border: 1px solid #c3c4c7;
+    border-radius: 8px;
+    padding: 24px 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.wc-qp-form table.form-table th {
+    width: 250px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    padding: 20px 10px 20px 0;
+}
+
+.wc-qp-form table.form-table td {
+    padding: 15px 10px;
+}
