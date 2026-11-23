@@ -16,26 +16,55 @@
         var $btnText     = $submitBtn.find('.wc-qp-btn-text');
         var $notice      = $('#wc-qp-notice');
 
-        // Restore saved customer data from localStorage if fields are empty.
+        // Clean & decode currency symbol (prevent any raw &#x... entities from ever displaying)
+        var cleanCurrency = wcQuickPayParams.currency || '';
+        if (cleanCurrency.indexOf('&') !== -1) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cleanCurrency;
+            cleanCurrency = tempDiv.textContent || tempDiv.innerText || cleanCurrency;
+        }
+
+        // Language Switcher: store cookie on toggle click
+        $('#wc-qp-lang-btn').on('click', function(e) {
+            var href = $(this).attr('href') || '';
+            var targetLang = href.indexOf('lang=en') !== -1 ? 'en' : 'ar';
+            document.cookie = 'wc_qp_lang=' + targetLang + ';path=/;max-age=' + (30*86400);
+        });
+
+        // Auto-detect browser/device language on first visit if not explicitly chosen
+        try {
+            if (!document.cookie.match(/wc_qp_lang=/) && !window.location.search.match(/[?&]lang=/)) {
+                var userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+                var currentLang = wcQuickPayParams.lang || 'ar';
+                if (userLang.startsWith('en') && currentLang !== 'en') {
+                    document.cookie = 'wc_qp_lang=en;path=/;max-age=' + (30*86400);
+                    var newUrl = window.location.href + (window.location.search ? '&' : '?') + 'lang=en';
+                    window.location.replace(newUrl);
+                    return;
+                }
+            }
+        } catch(e) {}
+
+        // Restore saved customer data from localStorage if fields are present and empty.
         try {
             var savedName  = localStorage.getItem('wc_qp_name');
             var savedEmail = localStorage.getItem('wc_qp_email');
             var savedPhone = localStorage.getItem('wc_qp_phone');
 
-            if (savedName && !$('#wc_qp_name').val()) {
+            if (savedName && $('#wc_qp_name').length && !$('#wc_qp_name').val()) {
                 $('#wc_qp_name').val(savedName);
             }
-            if (savedEmail && !$('#wc_qp_email').val()) {
+            if (savedEmail && $('#wc_qp_email').length && !$('#wc_qp_email').val()) {
                 $('#wc_qp_email').val(savedEmail);
             }
-            if (savedPhone && !$('#wc_qp_phone').val()) {
+            if (savedPhone && $('#wc_qp_phone').length && !$('#wc_qp_phone').val()) {
                 $('#wc_qp_phone').val(savedPhone);
             }
         } catch (e) {
             // LocalStorage might be disabled in private mode.
         }
 
-        // Save fields to localStorage on change.
+        // Save fields to localStorage on change if present.
         $('#wc_qp_name').on('input change', function() {
             try { localStorage.setItem('wc_qp_name', $(this).val()); } catch (e) {}
         });
@@ -51,7 +80,7 @@
             var val = parseFloat($amountInput.val());
             if (!isNaN(val) && val > 0) {
                 var formatted = val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                $dynBtnAmt.text('(' + formatted + ' ' + wcQuickPayParams.currency + ')');
+                $dynBtnAmt.text('(' + formatted + ' ' + cleanCurrency + ')');
             } else {
                 $dynBtnAmt.text('');
             }
@@ -68,10 +97,14 @@
         }
 
         $amountInput.on('input change', updateAmountDisplay);
+        updateAmountDisplay();
 
         // Preset button click.
         $presets.on('click', function(e) {
             e.preventDefault();
+            if ($amountInput.prop('readonly')) {
+                return;
+            }
             var amt = $(this).data('amount');
             $amountInput.val(amt).trigger('input');
         });
@@ -104,6 +137,7 @@
             e.preventDefault();
             hideNotice();
 
+            // 1. Amount validation.
             var amount = parseFloat($amountInput.val());
             if (isNaN(amount) || amount <= 0) {
                 showNotice(wcQuickPayParams.i18n.invalid_amount, 'error');
@@ -111,32 +145,50 @@
                 return;
             }
 
+            // 2. Invoice validation (only if present and required).
+            var invoiceInput = $('#wc_qp_invoice');
+            if (invoiceInput.length && invoiceInput.prop('required') && !$.trim(invoiceInput.val())) {
+                var invMsg = (wcQuickPayParams.i18n && wcQuickPayParams.i18n.invalid_invoice) ? wcQuickPayParams.i18n.invalid_invoice : 'يرجى إدخال رقم الفاتورة أو المعاملة المرجعية.';
+                showNotice(invMsg, 'error');
+                invoiceInput.focus();
+                return;
+            }
+
+            // 3. Customer validation (only if present and required).
             var nameInput = $('#wc_qp_name');
-            if (nameInput.prop('required') && !$.trim(nameInput.val())) {
+            if (nameInput.length && nameInput.prop('required') && !$.trim(nameInput.val())) {
                 showNotice(wcQuickPayParams.i18n.invalid_name, 'error');
                 nameInput.focus();
                 return;
             }
 
             var emailInput = $('#wc_qp_email');
-            var emailVal   = $.trim(emailInput.val());
-            if (emailInput.prop('required') || emailVal.length > 0) {
-                var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailPattern.test(emailVal)) {
+            var emailVal   = emailInput.length ? $.trim(emailInput.val()) : '';
+            if (emailInput.length) {
+                if (emailInput.prop('required') && !emailVal) {
                     showNotice(wcQuickPayParams.i18n.invalid_email, 'error');
                     emailInput.focus();
                     return;
                 }
+                if (emailVal.length > 0) {
+                    var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailPattern.test(emailVal)) {
+                        showNotice(wcQuickPayParams.i18n.invalid_email, 'error');
+                        emailInput.focus();
+                        return;
+                    }
+                }
             }
 
             var phoneInput = $('#wc_qp_phone');
-            if (phoneInput.prop('required') && !$.trim(phoneInput.val())) {
+            if (phoneInput.length && phoneInput.prop('required') && !$.trim(phoneInput.val())) {
                 showNotice(wcQuickPayParams.i18n.invalid_phone, 'error');
                 phoneInput.focus();
                 return;
             }
 
-            var gateway = $('input[name="gateway_id"]:checked').val();
+            // 4. Gateway selection.
+            var gateway = $('input[name="gateway_id"]:checked').val() || $('input[type="hidden"][name="gateway_id"]').val();
             if (!gateway) {
                 showNotice(wcQuickPayParams.i18n.select_gateway, 'error');
                 return;
@@ -152,11 +204,11 @@
                 action:     'wc_quick_pay_submit',
                 nonce:      wcQuickPayParams.nonce,
                 amount:     amount,
-                name:       nameInput.val(),
+                name:       nameInput.length ? nameInput.val() : '',
                 email:      emailVal,
-                phone:      phoneInput.val(),
-                invoice:    $('#wc_qp_invoice').val(),
-                notes:      $('#wc_qp_notes').val(),
+                phone:      phoneInput.length ? phoneInput.val() : '',
+                invoice:    invoiceInput.length ? invoiceInput.val() : '',
+                notes:      $('#wc_qp_notes').length ? $('#wc_qp_notes').val() : '',
                 gateway_id: gateway
             };
 
@@ -170,7 +222,7 @@
                         showNotice(response.data.message || wcQuickPayParams.i18n.processing, 'success');
                         setTimeout(function() {
                             window.location.href = response.data.redirect;
-                        }, 500);
+                        }, 400);
                     } else {
                         var errMsg = (response.data && response.data.message) ? response.data.message : wcQuickPayParams.i18n.general_error;
                         showNotice(errMsg, 'error');
@@ -180,11 +232,11 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    var errMsg = wcQuickPayParams.i18n.general_error;
+                    var errorMsg = wcQuickPayParams.i18n.general_error;
                     if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
-                        errMsg = xhr.responseJSON.data.message;
+                        errorMsg = xhr.responseJSON.data.message;
                     }
-                    showNotice(errMsg, 'error');
+                    showNotice(errorMsg, 'error');
                     $submitBtn.prop('disabled', false);
                     $spinner.hide();
                     $btnText.html(originalBtnHtml);

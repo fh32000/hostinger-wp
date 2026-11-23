@@ -1,0 +1,148 @@
+/**
+ * WooCommerce Ahli MPGS Gateway — Admin & Checkout Styles
+ */
+
+/* ── Settings page notice ─────────────────────────────────────────── */
+.wc-ahli-mpgs-notice {
+    background: #fff8e5;
+    border-left: 4px solid #f0a500;
+    padding: 10px 14px;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+/* ── Checkout payment method description & logo ─────────────────── */
+.payment_method_wc_ahli_mpgs_gateway label img,
+.payment_method_wc_ahli_mpgs_gateway .ahli-mpgs-logo {
+    max-height: 28px;
+    width: auto;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.payment_method_wc_ahli_mpgs_gateway .payment_box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+/* ── Admin License Box ────────────────────────────────────────────── */
+.ahli-license-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #ccd0d4;
+    padding: 20px 24px;
+    margin: 20px 0 25px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    max-width: 900px;
+}
+
+.ahli-license-card.status-active {
+    border-right: 5px solid #46b450;
+    background: #f7fcf7;
+}
+
+.ahli-license-card.status-inactive {
+    border-right: 5px solid #dc3232;
+    background: #fffafa;
+}
+
+.ahli-license-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.ahli-license-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ahli-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ahli-badge-success {
+    background: #def7ec;
+    color: #03543f;
+}
+
+.ahli-badge-danger {
+    background: #fde8e8;
+    color: #9b1c1c;
+}
+
+.ahli-license-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.ahli-license-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #2c3338;
+}
+
+.ahli-license-field input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.ahli-license-field input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+.ahli-license-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.ahli-btn-whatsapp {
+    background: #25D366;
+    color: #fff !important;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.ahli-btn-whatsapp:hover {
+    background: #1ebc57;
+    color: #fff;
+}
+
+.ahli-license-info-row {
+    margin: 6px 0;
+    font-size: 13px;
+    color: #50575e;
+}

@@ -56,35 +56,44 @@ class WC_Quick_Pay_Ajax {
             ] );
         }
 
-        // Validation: Name.
-        $req_name = ( $settings['field_name_req'] ?? 'yes' ) === 'yes';
+        // Validation: Invoice & Order Reference (Respect section visibility & field settings).
+        $show_invoice   = ( $settings['show_section_invoice'] ?? 'yes' ) === 'yes';
+        $invoice_enable = ( $settings['field_invoice_enable'] ?? 'yes' ) === 'yes';
+        $req_invoice    = $show_invoice && $invoice_enable && ( ( $settings['field_invoice_req'] ?? 'yes' ) === 'yes' );
+        if ( $req_invoice && empty( $invoice ) ) {
+            wp_send_json_error( [
+                'message' => __( 'يرجى إدخال رقم الفاتورة أو الطلب.', 'wc-quick-pay' ),
+            ] );
+        }
+
+        // Validation: Customer Information (Respect section visibility & field settings).
+        $show_customer = ( $settings['show_section_customer'] ?? 'yes' ) === 'yes';
+
+        $name_enable = ( $settings['field_name_enable'] ?? 'yes' ) === 'yes';
+        $req_name    = $show_customer && $name_enable && ( ( $settings['field_name_req'] ?? 'yes' ) === 'yes' );
         if ( $req_name && empty( $name ) ) {
             wp_send_json_error( [
                 'message' => __( 'يرجى إدخال الاسم الكامل.', 'wc-quick-pay' ),
             ] );
         }
 
-        // Validation: Email.
-        $req_email = ( $settings['field_email_req'] ?? 'yes' ) === 'yes';
+        $email_enable = ( $settings['field_email_enable'] ?? 'yes' ) === 'yes';
+        $req_email    = $show_customer && $email_enable && ( ( $settings['field_email_req'] ?? 'yes' ) === 'yes' );
         if ( $req_email && ( empty( $email ) || ! is_email( $email ) ) ) {
             wp_send_json_error( [
                 'message' => __( 'يرجى إدخال بريد إلكتروني صحيح.', 'wc-quick-pay' ),
             ] );
-        }
-
-        // Validation: Phone.
-        $req_phone = ( $settings['field_phone_req'] ?? 'yes' ) === 'yes';
-        if ( $req_phone && empty( $phone ) ) {
+        } elseif ( ! empty( $email ) && ! is_email( $email ) ) {
             wp_send_json_error( [
-                'message' => __( 'يرجى إدخال رقم الجوال.', 'wc-quick-pay' ),
+                'message' => __( 'البريد الإلكتروني المدخل غير صالح.', 'wc-quick-pay' ),
             ] );
         }
 
-        // Validation: Invoice.
-        $req_invoice = ( $settings['field_invoice_req'] ?? 'yes' ) === 'yes';
-        if ( $req_invoice && empty( $invoice ) ) {
+        $phone_enable = ( $settings['field_phone_enable'] ?? 'yes' ) === 'yes';
+        $req_phone    = $show_customer && $phone_enable && ( ( $settings['field_phone_req'] ?? 'yes' ) === 'yes' );
+        if ( $req_phone && empty( $phone ) ) {
             wp_send_json_error( [
-                'message' => __( 'يرجى إدخال رقم الفاتورة أو الطلب.', 'wc-quick-pay' ),
+                'message' => __( 'يرجى إدخال رقم الجوال.', 'wc-quick-pay' ),
             ] );
         }
 
@@ -109,7 +118,7 @@ class WC_Quick_Pay_Ajax {
 
         $gateway = $available_gateways[ $gateway_id ];
 
-        // Create the Order.
+        // Create the Order with fallback handling.
         $order = WC_Quick_Pay_Order::create_quick_pay_order( [
             'amount'     => $amount,
             'name'       => $name,
@@ -148,26 +157,21 @@ class WC_Quick_Pay_Ajax {
                     foreach ( $notices as $notice ) {
                         $error_msgs[] = wp_strip_all_tags( $notice['notice'] ?? '' );
                     }
-                    wc_clear_notices();
                 }
 
-                $message = ! empty( $error_msgs )
-                    ? implode( ' - ', $error_msgs )
-                    : __( 'فشلت معالجة الدفع عبر البوابة المختارة. يرجى مراجعة بيانات البطاقة أو المحاولة لاحقاً.', 'wc-quick-pay' );
+                $msg = ! empty( $error_msgs )
+                    ? implode( '<br>', $error_msgs )
+                    : ( $result['messages'] ?? __( 'تعذر بدء المعاملة عبر بوابة الدفع. يرجى مراجعة بياناتك أو المحاولة لاحقاً.', 'wc-quick-pay' ) );
 
-                wp_send_json_error( [
-                    'message'  => $message,
-                    'order_id' => $order->get_id(),
-                ] );
+                wp_send_json_error( [ 'message' => $msg ] );
             }
-        } catch ( Exception $e ) {
+        } catch ( \Throwable $e ) {
             wp_send_json_error( [
-                'message'  => sprintf( __( 'خطأ غير متوقع: %s', 'wc-quick-pay' ), $e->getMessage() ),
-                'order_id' => $order->get_id(),
+                'message' => sprintf( __( 'حدث استثناء أثناء الاتصال ببوابة الدفع: %s', 'wc-quick-pay' ), $e->getMessage() ),
             ] );
         }
     }
 }
 
-// Hook into AJAX.
+// Hook into init.
 add_action( 'init', [ 'WC_Quick_Pay_Ajax', 'init' ] );

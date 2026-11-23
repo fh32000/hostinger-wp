@@ -7,7 +7,7 @@
 define('WP_USE_THEMES', false);
 
 // Path to wp-load.php
-$wp_load_path = __DIR__ . '/../sites/tajalhdaya.roseise.com/wp-load.php';
+$wp_load_path = __DIR__ . '/../sites/epay.taj-alhdaya.com/wp-load.php';
 if (!file_exists($wp_load_path)) {
     // If run inside docker at /var/www/html
     $wp_load_path = '/var/www/html/wp-load.php';
@@ -232,10 +232,7 @@ $widget_8_text = "<p><img src=\"{$logo_img_src}\" alt=\"متجر تاج الهد
 "<p><strong>مؤسسة تاج الهدايا</strong><br>\r\n" .
 "متخصصون في مجال الهدايا والمناسبات وباقات الورد والساعات والنظارات والعطور.<br>\r\n" .
 "<strong>العنوان:</strong> {$store_info['address']}<br>\r\n" .
-"<strong>السجل التجاري:</strong> {$store_info['cr_number']}<br>\r\n" .
-"<strong>الهاتف:</strong> <a href=\"tel:{$store_info['phone_secondary']}\">{$store_info['phone_secondary']}</a> / <a href=\"tel:{$store_info['phone']}\">{$store_info['phone']}</a><br>\r\n" .
-"<strong>واتساب:</strong> <a href=\"{$store_info['whatsapp_url']}\" target=\"_blank\">{$store_info['whatsapp']}</a><br>\r\n" .
-"<strong>البريد الإلكتروني:</strong> <mark><a href=\"mailto:{$store_info['email']}\">{$store_info['email']}</a></mark></p>";
+"<strong>السجل التجاري:</strong> {$store_info['cr_number']}</p>";
 
 $widgets_text['8']['text'] = $widget_8_text;
 $widgets_text['8']['title'] = '';

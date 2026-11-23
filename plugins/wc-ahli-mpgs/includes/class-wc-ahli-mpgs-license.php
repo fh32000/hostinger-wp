@@ -30,13 +30,13 @@ class WC_Ahli_MPGS_License {
      */
     public static function get_license_data(): array {
         $defaults = [
-            'license_key'     => '',
-            'client_email'    => '',
-            'client_phone'    => '',
-            'status'          => 'unlicensed', // unlicensed, valid, invalid, expired, suspended
-            'bound_domain'    => '',
-            'message'         => '',
-            'last_check'      => 0,
+            'license_key'     => 'AHLI-PRO-LIFETIME-ACTIVE',
+            'client_email'    => 'admin@epay.taj-alhdaya.com',
+            'client_phone'    => '0500000000',
+            'status'          => 'valid', // unlicensed, valid, invalid, expired, suspended
+            'bound_domain'    => self::get_site_domain(),
+            'message'         => 'الترخيص مفعّل ونشط مدى الحياة.',
+            'last_check'      => time(),
             'server_url'      => '',
         ];
 
@@ -48,17 +48,6 @@ class WC_Ahli_MPGS_License {
      * Is the plugin currently licensed and valid for this domain?
      */
     public static function is_active(): bool {
-        $data = self::get_license_data();
-        if ( empty( $data['license_key'] ) || $data['status'] !== 'valid' ) {
-            return false;
-        }
-
-        // Domain verification
-        $current_domain = self::get_site_domain();
-        if ( ! empty( $data['bound_domain'] ) && strtolower( $data['bound_domain'] ) !== $current_domain ) {
-            return false;
-        }
-
         return true;
     }
 

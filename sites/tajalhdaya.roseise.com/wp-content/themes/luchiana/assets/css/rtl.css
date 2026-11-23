@@ -1,8 +1,0 @@
-* {
-	letter-spacing: 0 !important;
-}
-
-body {
-	direction:    rtl;
-	unicode-bidi: embed;
-}

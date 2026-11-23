@@ -1,0 +1,14 @@
+{
+  "project": "epay.taj-alhdaya.com",
+  "name": "متجر تاج الهدايا (Taj Al-Hdaya)",
+  "category": "ecommerce-stores",
+  "lean_wordpress": false,
+  "download_status": "fully_downloaded",
+  "custom_themes": [],
+  "installed_plugins": [
+    "woocommerce",
+    "wc-quick-pay",
+    "wc-ahli-mpgs",
+    "taj-sync"
+  ]
+}

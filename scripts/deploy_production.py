@@ -5,7 +5,7 @@ import sys
 import time
 import subprocess
 
-BASE_URL = "https://tajalhdaya.roseise.com"
+BASE_URL = "https://epay.taj-alhdaya.com"
 REST_URL = f"{BASE_URL}/wp-json/taj/v1/migrate"
 TOKEN = "taj_sec_migration_9827"
 COOKIE_FILE = "/tmp/wp_cookies.txt"

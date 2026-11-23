@@ -3,7 +3,7 @@
  * Plugin Name:       WooCommerce Ahli Bank (MPGS) Payment Gateway
  * Plugin URI:        https://github.com/your-org/wc-ahli-mpgs
  * Description:       يربط بوابة دفع البنك الأهلي (Mastercard Payment Gateway Services - MPGS) مع WooCommerce عبر طريقة Hosted Checkout.
- * Version:           1.0.0
+ * Version:           1.0.2
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Your Name
@@ -19,7 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-define( 'WC_AHLI_MPGS_VERSION',  '1.0.0' );
+define( 'WC_AHLI_MPGS_VERSION',  '1.0.1' );
 define( 'WC_AHLI_MPGS_FILE',     __FILE__ );
 define( 'WC_AHLI_MPGS_DIR',      plugin_dir_path( __FILE__ ) );
 define( 'WC_AHLI_MPGS_URL',      plugin_dir_url( __FILE__ ) );

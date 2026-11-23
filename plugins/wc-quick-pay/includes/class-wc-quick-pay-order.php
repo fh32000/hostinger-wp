@@ -102,10 +102,51 @@ class WC_Quick_Pay_Order {
             return new WP_Error( 'invalid_amount', __( 'المبلغ المدخل غير صحيح.', 'wc-quick-pay' ) );
         }
 
+        $settings = get_option( 'wc_quick_pay_settings', [] );
+
+        // Fallback for customer name if empty (e.g. zero-field mode).
+        if ( empty( $full_name ) ) {
+            if ( is_user_logged_in() ) {
+                $user = wp_get_current_user();
+                $full_name = trim( $user->first_name . ' ' . $user->last_name ) ?: $user->display_name;
+            }
+            if ( empty( $full_name ) ) {
+                $full_name = ! empty( $settings['fallback_guest_name'] ) ? $settings['fallback_guest_name'] : __( 'عميل سداد سريع', 'wc-quick-pay' );
+            }
+        }
+
         // Split name into first and last name.
         $parts      = explode( ' ', trim( $full_name ), 2 );
         $first_name = $parts[0] ?? $full_name;
-        $last_name  = $parts[1] ?? '.';
+        $last_name  = $parts[1] ?? ( $first_name ?: '.' );
+
+        // Fallback for customer email if empty (many payment gateways require a valid email format).
+        if ( empty( $email ) ) {
+            if ( is_user_logged_in() ) {
+                $email = wp_get_current_user()->user_email;
+            }
+            if ( empty( $email ) ) {
+                $email = ! empty( $settings['fallback_guest_email'] ) ? $settings['fallback_guest_email'] : get_option( 'admin_email' );
+            }
+            if ( empty( $email ) || ! is_email( $email ) ) {
+                $host = parse_url( home_url(), PHP_URL_HOST ) ?: 'quickpay.store';
+                $email = 'guest_' . time() . '@' . $host;
+            }
+        }
+
+        // Fallback for customer phone if empty.
+        if ( empty( $phone ) ) {
+            if ( is_user_logged_in() && class_exists( 'WC_Customer' ) ) {
+                $customer = new WC_Customer( get_current_user_id() );
+                $phone = $customer->get_billing_phone();
+            }
+            if ( empty( $phone ) ) {
+                $phone = ! empty( $settings['fallback_guest_phone'] ) ? $settings['fallback_guest_phone'] : ( $settings['support_phone'] ?? '0500000000' );
+            }
+            if ( empty( $phone ) ) {
+                $phone = '0500000000';
+            }
+        }
 
         // Get backing product.
         $product_id = self::get_product_id();

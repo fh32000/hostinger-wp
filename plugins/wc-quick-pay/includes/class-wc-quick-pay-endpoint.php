@@ -130,15 +130,26 @@ class WC_Quick_Pay_Endpoint {
             status_header( 200 );
             nocache_headers();
 
+            if ( ! headers_sent() ) {
+                header( 'X-LiteSpeed-Cache-Control: no-cache' );
+                header( 'Cache-Control: no-cache, no-store, must-revalidate, max-age=0' );
+                header( 'Pragma: no-cache' );
+            }
+            do_action( 'litespeed_control_set_nocache', 'wc_quick_pay' );
+
             // Extract prefill query parameters.
             $prefill = [
-                'amount'     => isset( $_GET['amount'] ) ? (float) sanitize_text_field( wp_unslash( $_GET['amount'] ) ) : ( ! empty( $settings['default_amount'] ) ? (float) $settings['default_amount'] : '' ),
-                'invoice'    => isset( $_GET['invoice'] ) ? sanitize_text_field( wp_unslash( $_GET['invoice'] ) ) : ( isset( $_GET['order_id'] ) ? sanitize_text_field( wp_unslash( $_GET['order_id'] ) ) : '' ),
-                'name'       => isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '',
-                'email'      => isset( $_GET['email'] ) ? sanitize_email( wp_unslash( $_GET['email'] ) ) : '',
-                'phone'      => isset( $_GET['phone'] ) ? sanitize_text_field( wp_unslash( $_GET['phone'] ) ) : '',
-                'notes'      => isset( $_GET['notes'] ) ? sanitize_textarea_field( wp_unslash( $_GET['notes'] ) ) : ( isset( $_GET['desc'] ) ? sanitize_textarea_field( wp_unslash( $_GET['desc'] ) ) : '' ),
-                'gateway_id' => isset( $_GET['gateway'] ) ? sanitize_text_field( wp_unslash( $_GET['gateway'] ) ) : '',
+                'amount'        => isset( $_GET['amount'] ) ? (float) sanitize_text_field( wp_unslash( $_GET['amount'] ) ) : ( ! empty( $settings['default_amount'] ) ? (float) $settings['default_amount'] : '' ),
+                'invoice'       => isset( $_GET['invoice'] ) ? sanitize_text_field( wp_unslash( $_GET['invoice'] ) ) : ( isset( $_GET['order_id'] ) ? sanitize_text_field( wp_unslash( $_GET['order_id'] ) ) : '' ),
+                'name'          => isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '',
+                'email'         => isset( $_GET['email'] ) ? sanitize_email( wp_unslash( $_GET['email'] ) ) : '',
+                'phone'         => isset( $_GET['phone'] ) ? sanitize_text_field( wp_unslash( $_GET['phone'] ) ) : '',
+                'notes'         => isset( $_GET['notes'] ) ? sanitize_textarea_field( wp_unslash( $_GET['notes'] ) ) : ( isset( $_GET['desc'] ) ? sanitize_textarea_field( wp_unslash( $_GET['desc'] ) ) : '' ),
+                'gateway_id'    => isset( $_GET['gateway'] ) ? sanitize_text_field( wp_unslash( $_GET['gateway'] ) ) : '',
+                'lock'          => isset( $_GET['lock'] ) && in_array( $_GET['lock'], [ '1', 'yes', 'true' ], true ),
+                'hide_customer' => isset( $_GET['hide_customer'] ) && in_array( $_GET['hide_customer'], [ '1', 'yes', 'true' ], true ),
+                'hide_invoice'  => isset( $_GET['hide_invoice'] ) && in_array( $_GET['hide_invoice'], [ '1', 'yes', 'true' ], true ),
+                'hide_support'  => isset( $_GET['hide_support'] ) && in_array( $_GET['hide_support'], [ '1', 'yes', 'true' ], true ),
             ];
 
             // If user is logged in, auto-fill details from WP user if not provided in URL.

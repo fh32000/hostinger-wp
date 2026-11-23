@@ -11,17 +11,20 @@
     font-size: 13px;
 }
 
-/* ── Checkout payment method description ─────────────────────────── */
+/* ── Checkout payment method description & logo ─────────────────── */
+.payment_method_wc_ahli_mpgs_gateway label img,
+.payment_method_wc_ahli_mpgs_gateway .ahli-mpgs-logo {
+    max-height: 28px;
+    width: auto;
+    vertical-align: middle;
+    display: inline-block;
+}
+
 .payment_method_wc_ahli_mpgs_gateway .payment_box {
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 14px;
-}
-
-.payment_method_wc_ahli_mpgs_gateway .ahli-mpgs-logo {
-    max-height: 40px;
-    width: auto;
 }
 
 /* ── Admin License Box ────────────────────────────────────────────── */

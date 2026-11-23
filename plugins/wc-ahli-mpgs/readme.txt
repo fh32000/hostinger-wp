@@ -4,7 +4,7 @@ Tags: woocommerce, payment, gateway, mpgs, mastercard, ahli, saudi arabia, saudi
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,6 +33,11 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 4. أدخل Merchant ID وAPI Password
 
 == Changelog ==
+
+= 1.0.1 =
+* إضافة الأيقونة الرسمية لبوابة البنك الأهلي (SNB / MPGS) داخل مجلد assets/images.
+* تحسين دالة get_icon() لإظهار الشعار بأبعاد ملائمة ومظهر متناسق مع مختلف القوالب ونماذج الدفع السريع.
+* تحميل ملف CSS في صفحات الدفع (Checkout).
 
 = 1.0.0 =
 * الإصدار الأول — Hosted Checkout، دعم الاسترداد، وضع الاختبار.

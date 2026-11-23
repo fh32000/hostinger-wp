@@ -2,15 +2,24 @@
 /**
  * Standalone Quick Pay Page Template.
  * Isolated from WordPress theme headers/footers for a distraction-free payment experience.
+ * Fully bilingual (Arabic / English) with automatic device/browser language detection.
  *
  * @package WooCommerce_Quick_Pay
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$settings        = get_option( 'wc_quick_pay_settings', [] );
-$site_title      = get_bloginfo( 'name' );
-$page_title      = ! empty( $settings['page_title'] ) ? $settings['page_title'] : __( 'سداد سريع وآمن', 'wc-quick-pay' );
+$settings   = get_option( 'wc_quick_pay_settings', [] );
+$site_title = get_bloginfo( 'name' );
+
+// Internationalization & Device Language Detection.
+$is_en          = class_exists( 'WC_Quick_Pay_I18n' ) && WC_Quick_Pay_I18n::is_en();
+$ui             = class_exists( 'WC_Quick_Pay_I18n' ) ? WC_Quick_Pay_I18n::get_strings() : [];
+$dir            = class_exists( 'WC_Quick_Pay_I18n' ) ? WC_Quick_Pay_I18n::get_direction() : 'rtl';
+$lang           = class_exists( 'WC_Quick_Pay_I18n' ) ? WC_Quick_Pay_I18n::get_locale() : 'ar';
+$clean_currency = class_exists( 'WC_Quick_Pay_I18n' ) ? WC_Quick_Pay_I18n::get_clean_currency() : 'SAR';
+
+$page_title      = ! empty( $settings['page_title'] ) ? ( $is_en ? 'Quick Pay & Secure Settlement' : $settings['page_title'] ) : ( $is_en ? 'Quick Pay & Secure Settlement' : 'سداد سريع وآمن' );
 $logo_url        = $settings['logo_url'] ?? '';
 if ( empty( $logo_url ) ) {
     $custom_logo_id = get_theme_mod( 'custom_logo' );
@@ -21,9 +30,10 @@ if ( empty( $logo_url ) ) {
         $logo_url = content_url( '/uploads/2026/09/Gemini_Generated_Image_dg1l7pdg1l7pdg1l.png' );
     }
 }
-$header_title    = ! empty( $settings['header_title'] ) ? $settings['header_title'] : __( 'صفحة الدفع السريع وسداد الفواتير', 'wc-quick-pay' );
-$header_subtitle = ! empty( $settings['header_subtitle'] ) ? $settings['header_subtitle'] : __( 'أدخل بياناتك ورقم الفاتورة لإتمام الدفع الآمن والمباشر', 'wc-quick-pay' );
-$header_badge    = ! empty( $settings['header_badge'] ) ? $settings['header_badge'] : __( '🔒 سداد آمن ومشفّر 256-bit', 'wc-quick-pay' );
+
+$header_title    = ! empty( $settings['header_title'] ) ? ( $is_en ? ( $ui['header_title'] ?? 'Quick Pay & Invoice Settlement' ) : $settings['header_title'] ) : ( $ui['header_title'] ?? 'صفحة الدفع السريع وسداد الفواتير' );
+$header_subtitle = ! empty( $settings['header_subtitle'] ) ? ( $is_en ? ( $ui['header_subtitle'] ?? 'Enter your details and pay securely & directly' ) : $settings['header_subtitle'] ) : ( $ui['header_subtitle'] ?? 'أدخل بياناتك ورقم الفاتورة لإتمام الدفع الآمن والمباشر' );
+$header_badge    = ! empty( $settings['header_badge'] ) ? ( $is_en ? ( $ui['header_badge'] ?? '🔒 256-bit Secure & Encrypted Payment' ) : $settings['header_badge'] ) : ( $ui['header_badge'] ?? '🔒 سداد آمن ومشفّر 256-bit' );
 
 // Colors.
 $primary_color = $settings['primary_color'] ?? '#004733';
@@ -31,15 +41,20 @@ $accent_color  = $settings['accent_color'] ?? '#D4AF37';
 $bg_color      = $settings['bg_color'] ?? '#f8fafc';
 
 // Support.
-$whatsapp = ! empty( $settings['support_whatsapp'] ) ? $settings['support_whatsapp'] : '966579355216';
-$phone    = ! empty( $settings['support_phone'] ) ? $settings['support_phone'] : '+966579355216';
-$email    = $settings['support_email'] ?? '';
-$terms    = $settings['terms_url'] ?? '';
-$refund   = $settings['refund_url'] ?? '';
-$footer   = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : ( 'جميع الحقوق محفوظة © ' . date( 'Y' ) . ' ' . $site_title );
+$show_support = ( $settings['show_support_box'] ?? 'no' ) === 'yes';
+if ( ! empty( $prefill['hide_support'] ) || ( isset( $_GET['hide_support'] ) && in_array( $_GET['hide_support'], [ '1', 'yes', 'true' ], true ) ) ) {
+    $show_support = false;
+}
+$whatsapp      = ! empty( $settings['support_whatsapp'] ) ? $settings['support_whatsapp'] : '966579355216';
+$phone         = ! empty( $settings['support_phone'] ) ? $settings['support_phone'] : '+966579355216';
+$email         = $settings['support_email'] ?? '';
+$terms         = $settings['terms_url'] ?? '';
+$refund        = $settings['refund_url'] ?? '';
+$support_title = ! empty( $settings['footer_support_text'] ) ? ( $is_en ? ( $ui['support_title'] ?? 'Need help? Contact Customer Support' ) : $settings['footer_support_text'] ) : ( $ui['support_title'] ?? 'هل تحتاج لمساعدة؟ تواصل مع خدمة العملاء' );
+$footer_text   = ! empty( $settings['footer_text'] ) ? ( $is_en ? ( 'All Rights Reserved © ' . date( 'Y' ) . ' ' . $site_title ) : $settings['footer_text'] ) : ( ( $ui['copyright'] ?? 'جميع الحقوق محفوظة © ' ) . date( 'Y' ) . ' ' . $site_title );
 
 ?><!DOCTYPE html>
-<html <?php language_attributes(); ?> dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
+<html lang="<?php echo esc_attr( $lang ); ?>" dir="<?php echo esc_attr( $dir ); ?>">
 <head>
     <meta charset="<?php bloginfo( 'charset' ); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -66,6 +81,13 @@ $footer   = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : ( '
     <div class="wc-qp-page-wrapper">
         <!-- Main Container -->
         <main class="wc-qp-main">
+
+            <!-- Language Switcher Bar -->
+            <div class="wc-qp-lang-bar">
+                <a href="<?php echo esc_url( add_query_arg( 'lang', $is_en ? 'ar' : 'en' ) ); ?>" class="wc-qp-lang-btn" id="wc-qp-lang-btn">
+                    <span>🌐</span> <?php echo esc_html( $ui['lang_switch_label'] ?? ( $is_en ? 'العربية' : 'English' ) ); ?>
+                </a>
+            </div>
 
             <!-- Top Header Section -->
             <header class="wc-qp-header-section">
@@ -106,13 +128,13 @@ $footer   = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : ( '
                 </div>
 
                 <!-- Support Channels -->
-                <?php if ( ! empty( $whatsapp ) || ! empty( $phone ) || ! empty( $email ) ) : ?>
+                <?php if ( $show_support && ( ! empty( $whatsapp ) || ! empty( $phone ) || ! empty( $email ) ) ) : ?>
                     <div class="wc-qp-support-box">
-                        <p class="wc-qp-support-title"><?php echo esc_html( $settings['footer_support_text'] ?? __( 'هل تحتاج لمساعدة؟ تواصل مع خدمة العملاء', 'wc-quick-pay' ) ); ?></p>
+                        <p class="wc-qp-support-title"><?php echo esc_html( $support_title ); ?></p>
                         <div class="wc-qp-support-links">
                             <?php if ( ! empty( $whatsapp ) ) : ?>
                                 <a href="https://wa.me/<?php echo esc_attr( preg_replace( '/[^0-9]/', '', $whatsapp ) ); ?>" target="_blank" rel="noopener" class="wc-qp-support-btn wc-qp-wa">
-                                    <span>💬</span> <?php esc_html_e( 'واتساب الدعم', 'wc-quick-pay' ); ?>
+                                    <span>💬</span> <?php echo esc_html( $ui['support_wa'] ?? __( 'واتساب الدعم', 'wc-quick-pay' ) ); ?>
                                 </a>
                             <?php endif; ?>
 
@@ -135,37 +157,21 @@ $footer   = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : ( '
                 <?php if ( ! empty( $terms ) || ! empty( $refund ) ) : ?>
                     <div class="wc-qp-legal-links">
                         <?php if ( ! empty( $terms ) ) : ?>
-                            <a href="<?php echo esc_url( $terms ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'الشروط والأحكام', 'wc-quick-pay' ); ?></a>
+                            <a href="<?php echo esc_url( $terms ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $ui['terms'] ?? __( 'الشروط والأحكام', 'wc-quick-pay' ) ); ?></a>
                         <?php endif; ?>
                         <?php if ( ! empty( $terms ) && ! empty( $refund ) ) : ?>
                             <span>•</span>
                         <?php endif; ?>
                         <?php if ( ! empty( $refund ) ) : ?>
-                            <a href="<?php echo esc_url( $refund ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'سياسة الاسترجاع والإلغاء', 'wc-quick-pay' ); ?></a>
+                            <a href="<?php echo esc_url( $refund ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $ui['refund'] ?? __( 'سياسة الاسترجاع والإلغاء', 'wc-quick-pay' ) ); ?></a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
                 <!-- Copyright -->
                 <div class="wc-qp-copyright">
-                    <p><?php echo esc_html( $footer ); ?></p>
+                    <p><?php echo esc_html( $footer_text ); ?></p>
                 </div>
-
-                <!-- Subtle Marketing / Developer Credit Badge at bottom edge -->
-                <?php if ( ( $settings['show_developer_credit'] ?? 'yes' ) === 'yes' ) : ?>
-                    <div class="wc-qp-marketing-credit">
-                        <span class="wc-qp-credit-label"><?php esc_html_e( 'ترغب بالحصول على هذه الإضافة أو تفعيل الخدمة لمتجرك؟', 'wc-quick-pay' ); ?></span>
-                        <div class="wc-qp-credit-links">
-                            <a href="mailto:info@woostore.dev" class="wc-qp-credit-item" title="البريد الإلكتروني">
-                                <span class="wc-qp-credit-icon">✉️</span> info@woostore.dev
-                            </a>
-                            <span class="wc-qp-credit-sep">•</span>
-                            <a href="https://t.me/fh32000" target="_blank" rel="noopener" class="wc-qp-credit-item" title="تليجرام">
-                                <span class="wc-qp-credit-icon">✈️</span> @fh32000
-                            </a>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </footer>
 
         </main>
@@ -176,16 +182,18 @@ $footer   = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : ( '
         var wcQuickPayParams = <?php echo wp_json_encode( [
             'ajax_url'     => admin_url( 'admin-ajax.php' ),
             'nonce'        => wp_create_nonce( 'wc_quick_pay_nonce' ),
-            'currency'     => get_woocommerce_currency_symbol(),
+            'currency'     => $clean_currency,
             'currency_code'=> get_woocommerce_currency(),
+            'lang'         => $lang,
             'i18n'         => [
-                'processing'    => __( 'جاري تجهيز بوابة الدفع والتحويل...', 'wc-quick-pay' ),
-                'invalid_amount'=> __( 'يرجى إدخال مبلغ صحيح أكبر من الصفر.', 'wc-quick-pay' ),
-                'invalid_email' => __( 'يرجى إدخال بريد إلكتروني صحيح.', 'wc-quick-pay' ),
-                'invalid_name'  => __( 'يرجى إدخال الاسم الكامل.', 'wc-quick-pay' ),
-                'invalid_phone' => __( 'يرجى إدخال رقم هاتف صحيح.', 'wc-quick-pay' ),
-                'select_gateway'=> __( 'يرجى اختيار بوابة الدفع لإتمام العملية.', 'wc-quick-pay' ),
-                'general_error' => __( 'حدث خطأ أثناء معالجة الطلب. يرجى المحاولة لاحقاً.', 'wc-quick-pay' ),
+                'processing'     => $ui['i18n_processing'] ?? __( 'جاري تجهيز بوابة الدفع والتحويل...', 'wc-quick-pay' ),
+                'invalid_amount' => $ui['i18n_amount_err'] ?? __( 'يرجى إدخال مبلغ صحيح أكبر من الصفر.', 'wc-quick-pay' ),
+                'invalid_invoice'=> $ui['i18n_invoice_err'] ?? __( 'يرجى إدخال رقم الفاتورة أو المعاملة المرجعية.', 'wc-quick-pay' ),
+                'invalid_email'  => $ui['i18n_email_err'] ?? __( 'يرجى إدخال بريد إلكتروني صحيح.', 'wc-quick-pay' ),
+                'invalid_name'   => $ui['i18n_name_err'] ?? __( 'يرجى إدخال الاسم الكامل.', 'wc-quick-pay' ),
+                'invalid_phone'  => $ui['i18n_phone_err'] ?? __( 'يرجى إدخال رقم هاتف صحيح.', 'wc-quick-pay' ),
+                'select_gateway' => $ui['i18n_gateway_err'] ?? __( 'يرجى اختيار بوابة الدفع لإتمام العملية.', 'wc-quick-pay' ),
+                'general_error'  => $ui['i18n_general_err'] ?? __( 'حدث خطأ أثناء معالجة الطلب. يرجى المحاولة لاحقاً.', 'wc-quick-pay' ),
             ],
         ] ); ?>;
     </script>

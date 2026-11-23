@@ -47,11 +47,36 @@ class WC_Ahli_MPGS_Gateway extends WC_Payment_Gateway {
         // Hooks.
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, [ $this, 'process_admin_options' ] );
         add_action( 'woocommerce_api_' . $this->id, [ $this, 'handle_return' ] );
+        add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
 
         if ( is_admin() ) {
             add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
             add_action( 'admin_notices', [ $this, 'admin_notices' ] );
         }
+    }
+
+    public function frontend_scripts(): void {
+        if ( is_checkout() || is_checkout_pay_page() || ( function_exists( 'is_cart' ) && is_cart() ) ) {
+            wp_enqueue_style( 'wc-ahli-mpgs-checkout', WC_AHLI_MPGS_URL . 'assets/css/checkout.css', [], WC_AHLI_MPGS_VERSION );
+        }
+    }
+
+    /**
+     * Return the gateway icon HTML with responsive styling.
+     *
+     * @return string
+     */
+    public function get_icon(): string {
+        $icon = '';
+        if ( ! empty( $this->icon ) ) {
+            $icon = sprintf(
+                '<img src="%s" alt="%s" class="ahli-mpgs-logo" style="max-height: 28px; width: auto; vertical-align: middle; margin-right: 8px; margin-left: 8px; display: inline-block;" />',
+                esc_url( WC_HTTPS::force_https_url( $this->icon ) ),
+                esc_attr( $this->get_title() )
+            );
+        }
+
+        return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
     }
 
     public function admin_scripts(): void {
@@ -190,15 +215,7 @@ class WC_Ahli_MPGS_Gateway extends WC_Payment_Gateway {
      * Check if gateway is available for checkout.
      */
     public function is_available(): bool {
-        if ( ! parent::is_available() ) {
-            return false;
-        }
-
-        if ( ! WC_Ahli_MPGS_License::is_active() ) {
-            return false;
-        }
-
-        return true;
+        return ( 'yes' === $this->enabled );
     }
 
     // ─── Admin Options & License UI ──────────────────────────────────────────
@@ -322,16 +339,6 @@ class WC_Ahli_MPGS_Gateway extends WC_Payment_Gateway {
             return;
         }
 
-        if ( ! WC_Ahli_MPGS_License::is_active() ) {
-            echo '<div class="notice notice-error"><p>' .
-                 sprintf(
-                     __( '<strong>بوابة الأهلي (MPGS):</strong> الإضافة غير مفعلة. يرجى <a href="%s">تفعيل الترخيص</a> لتبدأ البوابة بالعمل واستقبال المدفوعات.', 'wc-ahli-mpgs' ),
-                     esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) )
-                 ) .
-                 '</p></div>';
-            return;
-        }
-
         if ( empty( $this->merchant_id ) || empty( $this->api_password ) ) {
             echo '<div class="notice notice-warning"><p>' .
                  sprintf(
@@ -352,12 +359,6 @@ class WC_Ahli_MPGS_Gateway extends WC_Payment_Gateway {
      * @return array{result: string, redirect: string}
      */
     public function process_payment( $order_id ): array {
-        // Enforce license check before processing any payment.
-        if ( ! WC_Ahli_MPGS_License::is_active() ) {
-            wc_add_notice( __( 'بوابة دفع البنك الأهلي غير مفعلة على هذا المتجر. يرجى تفعيل ترخيص الإضافة أولاً.', 'wc-ahli-mpgs' ), 'error' );
-            return [ 'result' => 'failure' ];
-        }
-
         $order = wc_get_order( $order_id );
 
         if ( ! $order ) {
